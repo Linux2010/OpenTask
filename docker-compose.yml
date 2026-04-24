@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  bot-todolist:
+    build: .
+    container_name: bot-todolist
+    ports:
+      - "8090:8090"
+    environment:
+      - DB_HOST=hope05
+      - DB_PORT=53306
+      - DB_USER=root
+      - DB_PASSWORD=Tianfs@2020!!
+      - DB_NAME=hope_engine
+      - API_KEY=hope-bot-apikey-2026-0424
+      - API_PORT=8090
+      - DEBUG=false
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8090/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
