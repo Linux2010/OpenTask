@@ -1,5 +1,5 @@
 """
-Bot TodoList Configuration
+OpenTask Configuration
 
 Environment-based configuration using Pydantic Settings.
 """

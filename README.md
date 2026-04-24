@@ -1,21 +1,21 @@
-# Bot TodoList - AI Agent Task Distribution System
+# OpenTask - AI Agent Task Distribution System
 
-> A lightweight task distribution system for managing multiple OpenClaw bot containers
+> A lightweight, open-source task distribution system for managing multiple OpenClaw bot containers
 > 
 > **极简设计**：2 张表，23 个字段，专注核心功能
 
 ---
 
-## 🎯 What is Bot TodoList?
+## 🎯 What is OpenTask?
 
-Bot TodoList is a **task distribution system** designed for managing multiple OpenClaw bot containers:
+OpenTask is an **open-source task distribution system** designed for managing multiple OpenClaw bot containers:
 
 - **Hope (main)** - Central task dispatcher
 - **trump** - Upload engine operator
 - **cc** - Claude Code container
 - **anna** - Testing/operations container
 
-**Key Problem Solved**: Mission Control uses SQLite (local database), which causes **data isolation** - each container has its own database and cannot share tasks. Bot TodoList uses **MySQL (remote database)** to enable cross-container task distribution.
+**Key Problem Solved**: Mission Control uses SQLite (local database), which causes **data isolation** - each container has its own database and cannot share tasks. OpenTask uses **MySQL (remote database)** to enable cross-container task distribution.
 
 ---
 
@@ -129,7 +129,7 @@ curl -X POST -H "X-Bot-Key: hope-bot-apikey-2026-0424" \
 ## 📂 Project Structure
 
 ```
-bot-todolist/
+opentask/
 ├── README.md                    # This file
 ├── requirements.txt             # Python dependencies
 ├── Dockerfile                   # Docker configuration
@@ -231,7 +231,7 @@ See `docs/HEARTBEAT-bot-api.md` for full integration guide.
 
 **Result**: Containers cannot share tasks - main cannot assign tasks to trump/cc/anna!
 
-**Bot TodoList Solution**: MySQL remote database (hope05:53306) - all containers share the same task queue!
+**OpenTask Solution**: MySQL remote database (hope05:53306) - all containers share the same task queue!
 
 ---
 
@@ -262,7 +262,7 @@ MIT License - Open Source
 ## 🔗 Related Projects
 
 - [Mission Control](https://github.com/alanxurox/mission-control) - OpenClaw agent fleets coordination (SQLite-based)
-- [hope-bot](https://github.com/Linux2010/hope-bot) - Bot TodoList design documents
+- [hope-bot](https://github.com/Linux2010/hope-bot) - OpenTask design documents
 
 ---
 

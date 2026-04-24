@@ -9,8 +9,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 
 app = FastAPI(
-    title="Bot TodoList API",
-    description="Task distribution system for OpenClaw bot containers",
+    title="OpenTask API",
+    description="Open-source task distribution system for OpenClaw bot containers",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc"
@@ -35,7 +35,7 @@ app.include_router(task.router, prefix=settings.API_PREFIX)
 async def root():
     """Root endpoint"""
     return {
-        "service": "Bot TodoList",
+        "service": "OpenTask",
         "version": "1.0.0",
         "status": "running",
         "docs": "/docs"
