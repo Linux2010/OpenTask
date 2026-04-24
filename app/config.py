@@ -12,8 +12,8 @@ class Settings(BaseSettings):
     """Application settings"""
     
     # Database Configuration
-    DB_HOST: str = "hope05"
-    DB_PORT: int = 53306
+    DB_HOST: str = "192.168.31.167"  # hope05
+    DB_PORT: int = 3306  # MySQL default port
     DB_USER: str = "root"
     DB_PASSWORD: str = "Tianfs@2020!!"
     DB_NAME: str = "hope_engine"
