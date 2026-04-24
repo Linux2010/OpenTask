@@ -4,9 +4,9 @@ Task API Router
 FastAPI routes for task management.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Header
+from fastapi import APIRouter, Depends, HTTPException, Header, Body
 from typing import Optional, List
-from app.schemas.task import TaskCreate, TaskUpdate, TaskResponse
+from app.schemas.task import TaskCreate, TaskUpdate, TaskResponse, TaskComplete, TaskFail
 from app.services.task_service import TaskService
 from app.utils.auth import verify_api_key
 
@@ -79,27 +79,36 @@ async def start_task(
     api_key: str = Depends(verify_api_key)
 ):
     """Start task execution"""
-    return await TaskService.start_task(id)
+    task = await TaskService.start_task(id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found or cannot be started")
+    return task
 
 
 @router.put("/tasks/{id}/complete", response_model=TaskResponse)
 async def complete_task(
     id: int,
-    result: str,
+    body: TaskComplete = Body(...),
     api_key: str = Depends(verify_api_key)
 ):
     """Mark task as completed"""
-    return await TaskService.complete_task(id, result)
+    task = await TaskService.complete_task(id, body.result)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found or cannot be completed")
+    return task
 
 
 @router.put("/tasks/{id}/fail", response_model=TaskResponse)
 async def fail_task(
     id: int,
-    error_message: str,
+    body: TaskFail = Body(...),
     api_key: str = Depends(verify_api_key)
 ):
     """Mark task as failed"""
-    return await TaskService.fail_task(id, error_message)
+    task = await TaskService.fail_task(id, body.error_message)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found or cannot be failed")
+    return task
 
 
 @router.put("/tasks/{id}/retry", response_model=TaskResponse)
@@ -108,7 +117,10 @@ async def retry_task(
     api_key: str = Depends(verify_api_key)
 ):
     """Retry failed task"""
-    return await TaskService.retry_task(id)
+    task = await TaskService.retry_task(id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found or cannot be retried")
+    return task
 
 
 @router.put("/tasks/{id}/cancel", response_model=TaskResponse)
@@ -117,7 +129,10 @@ async def cancel_task(
     api_key: str = Depends(verify_api_key)
 ):
     """Cancel task"""
-    return await TaskService.cancel_task(id)
+    task = await TaskService.cancel_task(id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found or cannot be cancelled")
+    return task
 
 
 @router.get("/stats/today")
