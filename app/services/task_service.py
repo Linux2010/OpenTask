@@ -10,6 +10,15 @@ from app.schemas.task import TaskCreate, TaskUpdate, TaskResponse
 from app.utils.db import get_db_connection, execute_query, execute_insert, execute_update
 
 
+def add_task_log(task_id: int, action: str, old_status: str, new_status: str, message: str = None):
+    """记录任务状态变更日志到 bot_task_log 表"""
+    sql = """
+        INSERT INTO bot_task_log (task_id, action, old_status, new_status, message, operator, created_time)
+        VALUES (%s, %s, %s, %s, %s, 'system', NOW())
+    """
+    execute_insert(sql, (task_id, action, old_status, new_status, message))
+
+
 def dict_to_task_response(row: dict) -> TaskResponse:
     """Convert database row to TaskResponse"""
     return TaskResponse(
@@ -167,6 +176,12 @@ class TaskService:
     @staticmethod
     async def start_task(id: int) -> TaskResponse:
         """Start task execution"""
+        # Get current task to record old status
+        task = await TaskService.get_task(id)
+        if not task:
+            return None
+        
+        old_status = task.status
         now = datetime.now()
         sql = """
             UPDATE bot_task 
@@ -174,11 +189,21 @@ class TaskService:
             WHERE id = %s AND deleted = 0 AND status = 'pending'
         """
         execute_update(sql, (now, id))
+        
+        # Record log
+        add_task_log(id, 'start', old_status, 'running', 'Task started')
+        
         return await TaskService.get_task(id)
     
     @staticmethod
     async def complete_task(id: int, result: str) -> TaskResponse:
         """Mark task as completed"""
+        # Get current task to record old status
+        task = await TaskService.get_task(id)
+        if not task:
+            return None
+        
+        old_status = task.status
         now = datetime.now()
         sql = """
             UPDATE bot_task 
@@ -186,11 +211,21 @@ class TaskService:
             WHERE id = %s AND deleted = 0 AND status = 'running'
         """
         execute_update(sql, (now, result, id))
+        
+        # Record log
+        add_task_log(id, 'complete', old_status, 'completed', result)
+        
         return await TaskService.get_task(id)
     
     @staticmethod
     async def fail_task(id: int, error_message: str) -> TaskResponse:
         """Mark task as failed"""
+        # Get current task to record old status
+        task = await TaskService.get_task(id)
+        if not task:
+            return None
+        
+        old_status = task.status
         now = datetime.now()
         sql = """
             UPDATE bot_task 
@@ -198,6 +233,10 @@ class TaskService:
             WHERE id = %s AND deleted = 0 AND status = 'running'
         """
         execute_update(sql, (now, error_message, id))
+        
+        # Record log
+        add_task_log(id, 'fail', old_status, 'failed', error_message)
+        
         return await TaskService.get_task(id)
     
     @staticmethod
@@ -212,6 +251,7 @@ class TaskService:
             return task  # Cannot retry
         
         # Reset to pending and increment retry count
+        old_status = task.status
         sql = """
             UPDATE bot_task 
             SET status = 'pending', started_time = NULL, completed_time = NULL,
@@ -219,11 +259,21 @@ class TaskService:
             WHERE id = %s AND deleted = 0 AND status = 'failed'
         """
         execute_update(sql, (id,))
+        
+        # Record log
+        add_task_log(id, 'retry', old_status, 'pending', f'Retry count: {task.retry_count + 1}')
+        
         return await TaskService.get_task(id)
     
     @staticmethod
     async def cancel_task(id: int) -> TaskResponse:
         """Cancel task"""
+        # Get current task to record old status
+        task = await TaskService.get_task(id)
+        if not task:
+            return None
+        
+        old_status = task.status
         now = datetime.now()
         sql = """
             UPDATE bot_task 
@@ -231,6 +281,10 @@ class TaskService:
             WHERE id = %s AND deleted = 0 AND status IN ('pending', 'running')
         """
         execute_update(sql, (now, id))
+        
+        # Record log
+        add_task_log(id, 'cancel', old_status, 'cancelled', 'Task cancelled')
+        
         return await TaskService.get_task(id)
     
     @staticmethod
