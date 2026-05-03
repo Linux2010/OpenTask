@@ -6,7 +6,7 @@ A lightweight task distribution system for managing multiple OpenClaw bot contai
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from app.config import settings
 
 app = FastAPI(
@@ -28,27 +28,19 @@ app.add_middleware(
 
 # Import routers
 from app.routers import task
-from app.admin import router as admin_router
+from app.htmx import router as htmx_router
 
+# API routes (for bots)
 app.include_router(task.router, prefix=settings.API_PREFIX)
-app.include_router(admin_router)
+
+# Web UI routes (HTMX + Jinja2)
+app.include_router(htmx_router)
 
 
 @app.get("/", response_class=HTMLResponse)
 async def root():
-    """Root endpoint - redirect to admin"""
-    return """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>OpenTask</title>
-        <meta http-equiv="refresh" content="0;url=/admin/">
-    </head>
-    <body>
-        <p>Redirecting to <a href="/admin/">Admin UI</a>...</p>
-    </body>
-    </html>
-    """
+    """Root endpoint - redirect to web UI"""
+    return RedirectResponse(url="/web/")
 
 
 @app.get("/health")

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}OpenTask 管理端{% endblock %}</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <!-- Alpine.js (for simple interactivity) -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        .htmx-indicator { opacity: 0.5; transition: opacity 200ms; }
+        .htmx-request .htmx-indicator { opacity: 1; }
+        .htmx-request:not(.htmx-indicator) { opacity: 0.5; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/web/" class="text-xl font-bold text-gray-800">OpenTask</a>
+                    <div class="ml-10 flex space-x-4">
+                        <a href="/web/" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">仪表盘</a>
+                        <a href="/web/tasks" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">任务列表</a>
+                        <a href="/web/tasks/new" class="bg-blue-500 text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-600">快速派任务</a>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <span class="text-sm text-gray-500">管理端 v1.0</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Toast Messages -->
+    <div id="toast-container" class="fixed bottom-4 right-4 z-50"></div>
+
+    <!-- Loading Indicator -->
+    <div id="loading-indicator" class="htmx-indicator fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded shadow-lg">
+        加载中...
+    </div>
+</body>
+</html>

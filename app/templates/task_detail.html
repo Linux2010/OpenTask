@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+{% block title %}任务 #{{ task.id }} - OpenTask{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto space-y-6">
+    <!-- Task Header -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex justify-between items-start">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">任务 #{{ task.id }}</h1>
+                <p class="mt-1 text-lg text-gray-600">{{ task.task_name }}</p>
+            </div>
+            <span class="px-3 py-1 text-sm rounded-full font-medium
+                {% if task.status == 'pending' %}bg-yellow-100 text-yellow-800
+                {% elif task.status == 'running' %}bg-blue-100 text-blue-800
+                {% elif task.status == 'completed' %}bg-green-100 text-green-800
+                {% elif task.status == 'failed' %}bg-red-100 text-red-800
+                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                {{ task.status }}
+            </span>
+        </div>
+    </div>
+
+    <!-- Task Info -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-medium text-gray-900 mb-4">基本信息</h2>
+        <div class="grid grid-cols-2 gap-4 text-sm">
+            <div>
+                <span class="text-gray-500">任务描述：</span>
+                <span class="text-gray-900">{{ task.task_description or '无' }}</span>
+            </div>
+            <div>
+                <span class="text-gray-500">任务参数：</span>
+                <span class="text-gray-900">{{ task.task_params or '无' }}</span>
+            </div>
+            <div>
+                <span class="text-gray-500">分配对象：</span>
+                <span class="text-gray-900 font-medium">{{ task.assigned_to }}</span>
+            </div>
+            <div>
+                <span class="text-gray-500">优先级：</span>
+                <span class="px-2 py-1 text-xs rounded-full
+                    {% if task.priority == 'P0' %}bg-red-100 text-red-800
+                    {% elif task.priority == 'P1' %}bg-orange-100 text-orange-800
+                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                    {{ task.priority }}
+                </span>
+            </div>
+            <div>
+                <span class="text-gray-500">进度：</span>
+                <span class="text-gray-900">{{ task.progress or 0 }}%</span>
+            </div>
+            <div>
+                <span class="text-gray-500">创建者：</span>
+                <span class="text-gray-900">{{ task.created_by or '未知' }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Time Info -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-medium text-gray-900 mb-4">时间信息</h2>
+        <div class="grid grid-cols-3 gap-4 text-sm">
+            <div>
+                <span class="text-gray-500">创建时间：</span>
+                <span class="text-gray-900">{{ task.created_time or '-' }}</span>
+            </div>
+            <div>
+                <span class="text-gray-500">开始时间：</span>
+                <span class="text-gray-900">{{ task.started_time or '未开始' }}</span>
+            </div>
+            <div>
+                <span class="text-gray-500">完成时间：</span>
+                <span class="text-gray-900">{{ task.completed_time or '未完成' }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Result Info -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-medium text-gray-900 mb-4">执行结果</h2>
+        <div class="space-y-4 text-sm">
+            <div>
+                <span class="text-gray-500">执行结果：</span>
+                <span class="text-gray-900">{{ task.result or '无' }}</span>
+            </div>
+            <div>
+                <span class="text-gray-500">错误信息：</span>
+                <span class="text-red-600">{{ task.error_message or '无' }}</span>
+            </div>
+            <div>
+                <span class="text-gray-500">重试次数：</span>
+                <span class="text-gray-900">{{ task.retry_count or 0 }} / {{ task.max_retry or 3 }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-medium text-gray-900 mb-4">操作</h2>
+        <div class="flex flex-wrap gap-3">
+            {% if task.status == 'pending' %}
+            <button hx-put="/web/api/tasks/{{ task.id }}/start"
+                    hx-target="#action-result"
+                    hx-swap="innerHTML"
+                    hx-indicator="#loading-indicator"
+                    class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition">
+                开始执行
+            </button>
+            {% endif %}
+
+            {% if task.status == 'running' %}
+            <button hx-get="/web/tasks/{{ task.id }}/complete-form"
+                    hx-target="#modal-content"
+                    hx-swap="innerHTML"
+                    _="on htmx:afterSwap add .show to #modal"
+                    class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">
+                标记完成
+            </button>
+            <button hx-get="/web/tasks/{{ task.id }}/fail-form"
+                    hx-target="#modal-content"
+                    hx-swap="innerHTML"
+                    _="on htmx:afterSwap add .show to #modal"
+                    class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition">
+                标记失败
+            </button>
+            {% endif %}
+
+            {% if task.status == 'failed' %}
+            <button hx-put="/web/api/tasks/{{ task.id }}/retry"
+                    hx-target="#action-result"
+                    hx-swap="innerHTML"
+                    hx-indicator="#loading-indicator"
+                    class="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition">
+                重试任务
+            </button>
+            {% endif %}
+
+            {% if task.status in ['pending', 'running'] %}
+            <button hx-put="/web/api/tasks/{{ task.id }}/cancel"
+                    hx-target="#action-result"
+                    hx-swap="innerHTML"
+                    hx-indicator="#loading-indicator"
+                    class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition">
+                取消任务
+            </button>
+            {% endif %}
+
+            <a href="/web/tasks" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition">
+                返回列表
+            </a>
+        </div>
+
+        <!-- Action Result -->
+        <div id="action-result" class="mt-4"></div>
+    </div>
+
+    <!-- Task Logs -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-medium text-gray-900 mb-4">操作日志</h2>
+        <div hx-get="/web/api/tasks/{{ task.id }}/logs"
+             hx-trigger="load"
+             hx-indicator="#loading-indicator"
+             id="logs-section">
+            <p class="text-gray-500">加载中...</p>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center"
+     _="on click remove .show from me">
+    <div id="modal-content" class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+    </div>
+</div>
+{% endblock %}
