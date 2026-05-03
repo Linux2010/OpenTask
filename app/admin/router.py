@@ -119,9 +119,9 @@ async def task_list(
         })
 
     return [
-        PageTitle(text=title)"任务列表"),
+        PageTitle(title="任务列表"),
         Heading(text="任务列表"),
-        spacer(20),
+        Spacer(height=20),
         Div(
             components=[
                 Heading(text="筛选", level=3),
@@ -161,7 +161,7 @@ async def task_list(
         spacer(20),
         Div(
             components=[
-                Link(components=[Text(text="快速派任务")], on_click=GoToEvent(url= "/admin/tasks/new"}),
+                Link(components=[Text(text="快速派任务")], on_click=GoToEvent(url="/admin/tasks/new")),
                 Text(text=f"共 {len(tasks)} 个任务"),
             ],
             class_name="task-header"
@@ -174,7 +174,7 @@ async def task_list(
             components=[
                 Div(
                     components=[
-                        Link(components=[Text(text=f"#{t['id']} - {t['task_name']} ({t['status']})")], on_click=GoToEvent(url= f"/admin/tasks/{t['id']}"}),
+                        Link(components=[Text(text=f"#{t['id']} - {t['task_name']} ({t['status']})")], on_click=GoToEvent(url=f"/admin/tasks/{t['id']}")),
                     ],
                     class_name="task-link-row"
                 )
@@ -192,7 +192,7 @@ async def task_create_form():
     priority_opts = make_select_options(PRIORITY_OPTIONS)
 
     return [
-        PageTitle(text=title)"创建任务"),
+        PageTitle(title="创建任务"),
         Heading(text="快速派任务"),
         spacer(20),
         Form(
@@ -248,7 +248,7 @@ async def task_create_form():
             ],
         ),
         spacer(20),
-        Link(components=[Text(text="返回任务列表")], on_click=GoToEvent(url= "/admin/tasks"}),
+        Link(components=[Text(text="返回任务列表")], on_click=GoToEvent(url="/admin/tasks")),
     ]
 
 
@@ -269,16 +269,16 @@ async def task_create_submit(request: Request):
     task = await TaskService.create_task(task_data)
 
     return [
-        PageTitle(text=title)"任务创建成功"),
+        PageTitle(title="任务创建成功"),
         Heading(text="任务创建成功"),
         spacer(20),
         Text(text=f"任务 ID: {task['id']} 已创建"),
         spacer(20),
         Div(
             components=[
-                Link(components=[Text(text="查看任务详情")], on_click=GoToEvent(url= f"/admin/tasks/{task['id']}"}),
-                Link(components=[Text(text="继续创建任务")], on_click=GoToEvent(url= "/admin/tasks/new"}),
-                Link(components=[Text(text="返回任务列表")], on_click=GoToEvent(url= "/admin/tasks"}),
+                Link(components=[Text(text="查看任务详情")], on_click=GoToEvent(url=f"/admin/tasks/{task['id']}")),
+                Link(components=[Text(text="继续创建任务")], on_click=GoToEvent(url="/admin/tasks/new")),
+                Link(components=[Text(text="返回任务列表")], on_click=GoToEvent(url="/admin/tasks")),
             ]
         ),
     ]
@@ -290,11 +290,11 @@ async def task_detail(id: int):
     task = await TaskService.get_task(id)
     if not task:
         return [
-            PageTitle(text=title)"任务不存在"),
+            PageTitle(title="任务不存在"),
             Heading(text="任务不存在"),
             Text(text=f"任务 ID {id} 未找到"),
             spacer(20),
-            Link(components=[Text(text="返回任务列表")], on_click=GoToEvent(url= "/admin/tasks"}),
+            Link(components=[Text(text="返回任务列表")], on_click=GoToEvent(url="/admin/tasks")),
         ]
 
     # Determine available actions based on status
@@ -302,19 +302,19 @@ async def task_detail(id: int):
     action_links = []
 
     if status == "pending":
-        action_links.append(Link(components=[Text(text="开始执行")], on_click=GoToEvent(url= f"/admin/tasks/{id}/start"}))
+        action_links.append(Link(components=[Text(text="开始执行")], on_click=GoToEvent(url=f"/admin/tasks/{id}/start")))
     if status == "running":
         action_links.extend([
-            Link(components=[Text(text="标记完成")], on_click=GoToEvent(url= f"/admin/tasks/{id}/complete"}),
-            Link(components=[Text(text="标记失败")], on_click=GoToEvent(url= f"/admin/tasks/{id}/fail"}),
+            Link(components=[Text(text="标记完成")], on_click=GoToEvent(url=f"/admin/tasks/{id}/complete")),
+            Link(components=[Text(text="标记失败")], on_click=GoToEvent(url=f"/admin/tasks/{id}/fail")),
         ])
     if status == "failed":
-        action_links.append(Link(components=[Text(text="重试任务")], on_click=GoToEvent(url= f"/admin/tasks/{id}/retry"}))
+        action_links.append(Link(components=[Text(text="重试任务")], on_click=GoToEvent(url=f"/admin/tasks/{id}/retry")))
     if status in ["pending", "running"]:
-        action_links.append(Link(components=[Text(text="取消任务")], on_click=GoToEvent(url= f"/admin/tasks/{id}/cancel"}))
+        action_links.append(Link(components=[Text(text="取消任务")], on_click=GoToEvent(url=f"/admin/tasks/{id}/cancel")))
 
     return [
-        PageTitle(text=title)f"任务详情 - {task['task_name']}"),
+        PageTitle(title=f"任务详情 - {task['task_name']}"),
         Heading(text=f"任务 #{id}"),
         spacer(20),
         Div(
@@ -354,10 +354,10 @@ async def task_detail(id: int):
         spacer(30),
         Heading(text="操作", level=2),
         Div(
-            components=action_links + [Link(components=[Text(text="返回任务列表")], on_click=GoToEvent(url= "/admin/tasks"})],
+            components=action_links + [Link(components=[Text(text="返回任务列表")], on_click=GoToEvent(url="/admin/tasks"))],
             class_name="task-actions"
         ) if action_links else Div(
-            components=[Text(text="无可用操作"), Link(components=[Text(text="返回任务列表")], on_click=GoToEvent(url= "/admin/tasks"})],
+            components=[Text(text="无可用操作"), Link(components=[Text(text="返回任务列表")], on_click=GoToEvent(url="/admin/tasks"))],
         ),
     ]
 
@@ -368,18 +368,18 @@ async def task_start(id: int):
     task = await TaskService.start_task(id)
     if not task:
         return [
-            PageTitle(text=title)"操作失败"),
+            PageTitle(title="操作失败"),
             Heading(text="无法开始任务"),
             Text(text=f"任务 ID {id} 无法开始"),
-            Link(components=[Text(text="返回任务详情")], on_click=GoToEvent(url= f"/admin/tasks/{id}"}),
+            Link(components=[Text(text="返回任务详情")], on_click=GoToEvent(url=f"/admin/tasks/{id}")),
         ]
 
     return [
-        PageTitle(text=title)"任务已开始"),
+        PageTitle(title="任务已开始"),
         Heading(text="任务已开始执行"),
         Text(text=f"任务 #{id} 状态已更新为 running"),
         spacer(20),
-        Link(components=[Text(text="返回任务详情")], on_click=GoToEvent(url= f"/admin/tasks/{id}"}),
+        Link(components=[Text(text="返回任务详情")], on_click=GoToEvent(url=f"/admin/tasks/{id}")),
     ]
 
 
@@ -389,14 +389,14 @@ async def task_complete_form(id: int):
     task = await TaskService.get_task(id)
     if not task or task["status"] != "running":
         return [
-            PageTitle(text=title)"操作失败"),
+            PageTitle(title="操作失败"),
             Heading(text="无法完成任务"),
             Text(text=f"任务 ID {id} 无法完成"),
-            Link(components=[Text(text="返回任务详情")], on_click=GoToEvent(url= f"/admin/tasks/{id}"}),
+            Link(components=[Text(text="返回任务详情")], on_click=GoToEvent(url=f"/admin/tasks/{id}")),
         ]
 
     return [
-        PageTitle(text=title)"标记任务完成"),
+        PageTitle(title="标记任务完成"),
         Heading(text=f"标记任务 #{id} 完成"),
         Form(
             submit_url=f"/admin/tasks/{id}/complete/submit",
@@ -426,15 +426,15 @@ async def task_complete_submit(id: int, request: Request):
         return [
             Heading(text="操作失败"),
             Text(text="无法完成任务"),
-            Link(components=[Text(text="返回任务详情")], on_click=GoToEvent(url= f"/admin/tasks/{id}"}),
+            Link(components=[Text(text="返回任务详情")], on_click=GoToEvent(url=f"/admin/tasks/{id}")),
         ]
 
     return [
-        PageTitle(text=title)"任务已完成"),
+        PageTitle(title="任务已完成"),
         Heading(text="任务已完成"),
         Text(text=f"任务 #{id} 状态已更新为 completed"),
         spacer(20),
-        Link(components=[Text(text="返回任务列表")], on_click=GoToEvent(url= "/admin/tasks"}),
+        Link(components=[Text(text="返回任务列表")], on_click=GoToEvent(url="/admin/tasks")),
     ]
 
 
@@ -444,14 +444,14 @@ async def task_fail_form(id: int):
     task = await TaskService.get_task(id)
     if not task or task["status"] != "running":
         return [
-            PageTitle(text=title)"操作失败"),
+            PageTitle(title="操作失败"),
             Heading(text="无法标记失败"),
             Text(text=f"任务 ID {id} 无法标记为失败"),
-            Link(components=[Text(text="返回任务详情")], on_click=GoToEvent(url= f"/admin/tasks/{id}"}),
+            Link(components=[Text(text="返回任务详情")], on_click=GoToEvent(url=f"/admin/tasks/{id}")),
         ]
 
     return [
-        PageTitle(text=title)"标记任务失败"),
+        PageTitle(title="标记任务失败"),
         Heading(text=f"标记任务 #{id} 失败"),
         Form(
             submit_url=f"/admin/tasks/{id}/fail/submit",
@@ -481,15 +481,15 @@ async def task_fail_submit(id: int, request: Request):
         return [
             Heading(text="操作失败"),
             Text(text="无法标记任务失败"),
-            Link(components=[Text(text="返回任务详情")], on_click=GoToEvent(url= f"/admin/tasks/{id}"}),
+            Link(components=[Text(text="返回任务详情")], on_click=GoToEvent(url=f"/admin/tasks/{id}")),
         ]
 
     return [
-        PageTitle(text=title)"任务已标记失败"),
+        PageTitle(title="任务已标记失败"),
         Heading(text="任务已标记失败"),
         Text(text=f"任务 #{id} 状态已更新为 failed"),
         spacer(20),
-        Link(components=[Text(text="返回任务列表")], on_click=GoToEvent(url= "/admin/tasks"}),
+        Link(components=[Text(text="返回任务列表")], on_click=GoToEvent(url="/admin/tasks")),
     ]
 
 
@@ -499,18 +499,18 @@ async def task_retry(id: int):
     task = await TaskService.retry_task(id)
     if not task:
         return [
-            PageTitle(text=title)"操作失败"),
+            PageTitle(title="操作失败"),
             Heading(text="无法重试任务"),
             Text(text=f"任务 ID {id} 无法重试"),
-            Link(components=[Text(text="返回任务详情")], on_click=GoToEvent(url= f"/admin/tasks/{id}"}),
+            Link(components=[Text(text="返回任务详情")], on_click=GoToEvent(url=f"/admin/tasks/{id}")),
         ]
 
     return [
-        PageTitle(text=title)"任务已重试"),
+        PageTitle(title="任务已重试"),
         Heading(text="任务已重新排队"),
         Text(text=f"任务 #{id} 状态已更新为 pending"),
         spacer(20),
-        Link(components=[Text(text="返回任务详情")], on_click=GoToEvent(url= f"/admin/tasks/{id}"}),
+        Link(components=[Text(text="返回任务详情")], on_click=GoToEvent(url=f"/admin/tasks/{id}")),
     ]
 
 
@@ -520,16 +520,16 @@ async def task_cancel(id: int):
     task = await TaskService.cancel_task(id)
     if not task:
         return [
-            PageTitle(text=title)"操作失败"),
+            PageTitle(title="操作失败"),
             Heading(text="无法取消任务"),
             Text(text=f"任务 ID {id} 无法取消"),
-            Link(components=[Text(text="返回任务详情")], on_click=GoToEvent(url= f"/admin/tasks/{id}"}),
+            Link(components=[Text(text="返回任务详情")], on_click=GoToEvent(url=f"/admin/tasks/{id}")),
         ]
 
     return [
-        PageTitle(text=title)"任务已取消"),
+        PageTitle(title="任务已取消"),
         Heading(text="任务已取消"),
         Text(text=f"任务 #{id} 状态已更新为 cancelled"),
         spacer(20),
-        Link(components=[Text(text="返回任务列表")], on_click=GoToEvent(url= "/admin/tasks"}),
+        Link(components=[Text(text="返回任务列表")], on_click=GoToEvent(url="/admin/tasks")),
     ]
