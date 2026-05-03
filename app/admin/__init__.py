@@ -1,5 +1,0 @@
-"""OpenTask Admin UI Package"""
-
-from app.admin.router import router
-
-__all__ = ["router"]

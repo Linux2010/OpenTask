@@ -25,6 +25,20 @@ pytest tests/
 mysql -h hope05 -P 53306 -u root -p hope_engine < sql/bot_tables_simple.sql
 ```
 
+## Admin Web UI
+
+HTMX + Jinja2 管理端，访问 `http://localhost:8090/web/`
+
+| 页面 | 路径 | 功能 |
+|------|------|------|
+| 仪表盘 | `/web/` | 今日统计、快速操作 |
+| 任务列表 | `/web/tasks` | 筛选、表格展示 |
+| 快速派任务 | `/web/tasks/new` | 键值对参数表单 |
+| 任务详情 | `/web/tasks/{id}` | 状态操作、日志 |
+
+模板目录：`app/templates/`
+路由文件：[app/htmx/router.py](app/htmx/router.py)
+
 ## Architecture
 
 ### Layered Structure

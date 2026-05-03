@@ -1,0 +1,67 @@
+{% if tasks %}
+<table class="min-w-full divide-y divide-gray-200">
+    <thead class="bg-gray-50">
+        <tr>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">任务名称</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">描述</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">分配给</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">优先级</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">进度</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+        </tr>
+    </thead>
+    <tbody class="bg-white divide-y divide-gray-200">
+        {% for task in tasks %}
+        <tr class="hover:bg-gray-50">
+            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{{ task.id }}</td>
+            <td class="px-4 py-4 text-sm text-gray-900 font-medium">{{ task.task_name }}</td>
+            <td class="px-4 py-4 text-sm text-gray-500 truncate max-w-xs">{{ task.task_description or '-' }}</td>
+            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-600">{{ task.assigned_to }}</td>
+            <td class="px-4 py-4 whitespace-nowrap">
+                <span class="px-2 py-1 text-xs rounded-full font-medium
+                    {% if task.priority == 'P0' %}bg-red-100 text-red-800
+                    {% elif task.priority == 'P1' %}bg-orange-100 text-orange-800
+                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                    {{ task.priority }}
+                </span>
+            </td>
+            <td class="px-4 py-4 whitespace-nowrap">
+                <span class="px-2 py-1 text-xs rounded-full
+                    {% if task.status == 'pending' %}bg-yellow-100 text-yellow-800
+                    {% elif task.status == 'running' %}bg-blue-100 text-blue-800
+                    {% elif task.status == 'completed' %}bg-green-100 text-green-800
+                    {% elif task.status == 'failed' %}bg-red-100 text-red-800
+                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                    {{ task.status }}
+                </span>
+            </td>
+            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-600">{{ task.progress or 0 }}%</td>
+            <td class="px-4 py-4 whitespace-nowrap text-sm space-x-2">
+                <a href="/web/tasks/{{ task.id }}" class="text-blue-500 hover:text-blue-700">详情</a>
+                {% if task.status == 'pending' %}
+                <button hx-put="/web/api/tasks/{{ task.id }}/start"
+                        hx-target="closest tr"
+                        hx-swap="outerHTML"
+                        hx-indicator="#loading-indicator"
+                        class="text-green-500 hover:text-green-700">
+                    开始
+                </button>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<div class="bg-gray-50 px-4 py-3 text-sm text-gray-500">
+    共 {{ tasks|length }} 个任务
+</div>
+{% else %}
+<div class="p-8 text-center text-gray-500">
+    <p class="text-lg">暂无任务</p>
+    <a href="/web/tasks/new" class="mt-4 inline-block bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
+        创建第一个任务
+    </a>
+</div>
+{% endif %}

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}任务列表 - OpenTask{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Filters -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-medium text-gray-900 mb-4">筛选条件</h2>
+        <form hx-get="/web/tasks/list"
+              hx-target="#tasks-table"
+              hx-indicator="#loading-indicator"
+              class="flex flex-wrap gap-4">
+            <select name="assigned_to" class="border border-gray-300 rounded-md px-3 py-2 text-sm">
+                <option value="">全部 Bot</option>
+                {% for bot in bots %}
+                <option value="{{ bot }}" {% if assigned_to == bot %}selected{% endif %}>{{ bot }}</option>
+                {% endfor %}
+            </select>
+            <select name="status" class="border border-gray-300 rounded-md px-3 py-2 text-sm">
+                <option value="">全部状态</option>
+                {% for s in statuses %}
+                <option value="{{ s }}" {% if status == s %}selected{% endif %}>{{ s }}</option>
+                {% endfor %}
+            </select>
+            <select name="priority" class="border border-gray-300 rounded-md px-3 py-2 text-sm">
+                <option value="">全部优先级</option>
+                {% for p in priorities %}
+                <option value="{{ p }}" {% if priority == p %}selected{% endif %}>{{ p }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 text-sm">
+                筛选
+            </button>
+            <a href="/web/tasks" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 text-sm">
+                清除
+            </a>
+        </form>
+    </div>
+
+    <!-- Task List Header -->
+    <div class="flex justify-between items-center">
+        <h2 class="text-lg font-medium text-gray-900">任务列表</h2>
+        <a href="/web/tasks/new" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">
+            快速派任务
+        </a>
+    </div>
+
+    <!-- Tasks Table -->
+    <div id="tasks-table" class="bg-white rounded-lg shadow overflow-hidden">
+        {% include "components/tasks_table.html" %}
+    </div>
+</div>
+{% endblock %}
