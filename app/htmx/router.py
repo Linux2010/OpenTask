@@ -9,6 +9,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from app.services.task_service import TaskService
+from app.services.bot_service import BotService
 from app.schemas.task import TaskCreate
 
 router = APIRouter(prefix="/web", tags=["web"])
@@ -17,7 +18,6 @@ router = APIRouter(prefix="/web", tags=["web"])
 templates = Jinja2Templates(directory="app/templates")
 
 # Constants
-BOT_OPTIONS = ["main", "trump", "cc", "anna", "session_agent"]
 STATUS_OPTIONS = ["pending", "running", "completed", "failed", "cancelled"]
 PRIORITY_OPTIONS = ["P0", "P1", "P2"]
 
@@ -57,12 +57,13 @@ async def tasks_list_page(
 ):
     """Tasks list page"""
     tasks = await TaskService.list_tasks(assigned_to, status, priority)
+    bots = await BotService.get_active_bot_names()
     return templates.TemplateResponse(
         "tasks_list.html",
         {
             "request": request,
             "tasks": tasks,
-            "bots": BOT_OPTIONS,
+            "bots": bots,
             "statuses": STATUS_OPTIONS,
             "priorities": PRIORITY_OPTIONS,
             "assigned_to": assigned_to,
@@ -75,11 +76,30 @@ async def tasks_list_page(
 @router.get("/tasks/new", response_class=HTMLResponse)
 async def task_form_page(request: Request):
     """New task form page"""
+    bots = await BotService.get_active_bot_names()
     return templates.TemplateResponse(
         "task_form.html",
         {
             "request": request,
-            "bots": BOT_OPTIONS,
+            "bots": bots,
+        }
+    )
+
+
+@router.get("/tasks/list", response_class=HTMLResponse)
+async def tasks_table_partial(
+    request: Request,
+    assigned_to: str = None,
+    status: str = None,
+    priority: str = None
+):
+    """Tasks table partial for HTMX"""
+    tasks = await TaskService.list_tasks(assigned_to, status, priority)
+    return templates.TemplateResponse(
+        "components/tasks_table.html",
+        {
+            "request": request,
+            "tasks": tasks,
         }
     )
 
@@ -96,26 +116,6 @@ async def task_detail_page(request: Request, id: int):
         {
             "request": request,
             "task": task,
-        }
-    )
-
-
-# ============== HTMX API Routes (Partial HTML) ==============
-
-@router.get("/tasks/list", response_class=HTMLResponse)
-async def tasks_table_partial(
-    request: Request,
-    assigned_to: str = None,
-    status: str = None,
-    priority: str = None
-):
-    """Tasks table partial for HTMX"""
-    tasks = await TaskService.list_tasks(assigned_to, status, priority)
-    return templates.TemplateResponse(
-        "components/tasks_table.html",
-        {
-            "request": request,
-            "tasks": tasks,
         }
     )
 
@@ -305,3 +305,76 @@ async def refresh_stats(request: Request):
             "tasks": recent_tasks,
         }
     )
+
+
+# ============== Bot Management Routes ==============
+
+@router.get("/bots", response_class=HTMLResponse)
+async def bots_list_page(request: Request):
+    """Bot management page"""
+    bots = await BotService.list_bots()
+    return templates.TemplateResponse(
+        "bots_list.html",
+        {
+            "request": request,
+            "bots": bots,
+        }
+    )
+
+
+@router.post("/api/bots/create", response_class=HTMLResponse)
+async def create_bot(request: Request):
+    """Create new bot via HTMX"""
+    form_data = await request.form()
+    bot_name = form_data.get("bot_name")
+    display_name = form_data.get("display_name")
+    description = form_data.get("description")
+
+    try:
+        bot = await BotService.create_bot(bot_name, display_name, description)
+        # Return success and close modal
+        return HTMLResponse(content=f"""
+            <div class="p-6">
+                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-4">
+                    Bot <strong>{bot_name}</strong> 已添加成功
+                </div>
+                <script>
+                    setTimeout(() => {{
+                        window.location.reload();
+                    }}, 500);
+                </script>
+            </div>
+        """)
+    except Exception as e:
+        return HTMLResponse(content=f"""
+            <div class="p-6">
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg">
+                    添加失败：{str(e)}
+                </div>
+            </div>
+        """)
+
+
+@router.put("/api/bots/{bot_name}/toggle", response_class=HTMLResponse)
+async def toggle_bot_status(request: Request, bot_name: str):
+    """Toggle bot active status"""
+    bot = await BotService.toggle_bot_status(bot_name)
+    if not bot:
+        return HTMLResponse(content="<span class='text-red-500'>操作失败</span>")
+
+    return templates.TemplateResponse(
+        "components/bot_row.html",
+        {
+            "request": request,
+            "bot": bot[0],
+        }
+    )
+
+
+@router.delete("/api/bots/{bot_name}", response_class=HTMLResponse)
+async def delete_bot(request: Request, bot_name: str):
+    """Delete a bot"""
+    success = await BotService.delete_bot(bot_name)
+    if success:
+        return HTMLResponse(content="")  # Empty response removes the row
+    return HTMLResponse(content="<span class='text-red-500'>删除失败</span>")

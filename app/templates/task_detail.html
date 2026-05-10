@@ -113,14 +113,14 @@
             <button hx-get="/web/tasks/{{ task.id }}/complete-form"
                     hx-target="#modal-content"
                     hx-swap="innerHTML"
-                    _="on htmx:afterSwap add .show to #modal"
+                    hx-on--htmx-after-swap="document.getElementById('modal').classList.add('show')"
                     class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">
                 标记完成
             </button>
             <button hx-get="/web/tasks/{{ task.id }}/fail-form"
                     hx-target="#modal-content"
                     hx-swap="innerHTML"
-                    _="on htmx:afterSwap add .show to #modal"
+                    hx-on--htmx-after-swap="document.getElementById('modal').classList.add('show')"
                     class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition">
                 标记失败
             </button>
@@ -169,8 +169,8 @@
 
 <!-- Modal -->
 <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center"
-     _="on click remove .show from me">
-    <div id="modal-content" class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+     onclick="this.classList.remove('show')">
+    <div id="modal-content" class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4" onclick="event.stopPropagation()">
     </div>
 </div>
 {% endblock %}
