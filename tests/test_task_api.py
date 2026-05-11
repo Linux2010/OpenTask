@@ -16,10 +16,10 @@ class TestTaskAPI:
     """Task API tests"""
     
     def test_root_endpoint(self):
-        """Test root endpoint"""
-        response = client.get("/")
-        assert response.status_code == 200
-        assert response.json()["service"] == "Bot TodoList"
+        """Test root endpoint redirects to web UI"""
+        response = client.get("/", follow_redirects=False)
+        assert response.status_code == 307
+        assert response.headers["location"] == "/web/"
     
     def test_health_endpoint(self):
         """Test health endpoint"""

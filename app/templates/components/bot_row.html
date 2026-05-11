@@ -1,0 +1,27 @@
+<tr class="hover:bg-gray-50" data-bot="{{ bot.bot_name }}">
+    <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ bot.bot_name }}</td>
+    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-600">{{ bot.display_name or bot.bot_name }}</td>
+    <td class="px-4 py-4 text-sm text-gray-500">{{ bot.description or '-' }}</td>
+    <td class="px-4 py-4 whitespace-nowrap">
+        {% if bot.is_active %}
+        <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">启用</span>
+        {% else %}
+        <span class="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">禁用</span>
+        {% endif %}
+    </td>
+    <td class="px-4 py-4 whitespace-nowrap text-sm space-x-2">
+        <button hx-put="/web/api/bots/{{ bot.bot_name }}/toggle"
+                hx-target="closest tr"
+                hx-swap="outerHTML"
+                class="text-blue-500 hover:text-blue-700">
+            {% if bot.is_active %}禁用{% else %}启用{% endif %}
+        </button>
+        <button hx-delete="/web/api/bots/{{ bot.bot_name }}"
+                hx-target="closest tr"
+                hx-swap="outerHTML"
+                hx-confirm="确定删除 Bot {{ bot.bot_name }}？"
+                class="text-red-500 hover:text-red-700">
+            删除
+        </button>
+    </td>
+</tr>
