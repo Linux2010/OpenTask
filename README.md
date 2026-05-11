@@ -8,12 +8,7 @@
 
 ## 🎯 What is OpenTask?
 
-OpenTask is an **open-source task distribution system** designed for managing multiple OpenClaw bot containers:
-
-- **Hope (main)** - Central task dispatcher
-- **trump** - Upload engine operator
-- **cc** - Claude Code container
-- **anna** - Testing/operations container
+OpenTask is an **open-source task distribution system** designed for managing multiple OpenClaw bot containers.
 
 **Key Problem Solved**: Mission Control uses SQLite (local database), which causes **data isolation** - each container has its own database and cannot share tasks. OpenTask uses **MySQL (remote database)** to enable cross-container task distribution.
 
@@ -31,6 +26,7 @@ OpenTask is an **open-source task distribution system** designed for managing mu
 | ✅ **Retry Mechanism** | Failed tasks auto-retry (max_retry) |
 | ✅ **Soft Delete** | Deleted tasks marked, not removed |
 | ✅ **REST API** | FastAPI endpoints for task management |
+| ✅ **Web UI** | HTMX + Jinja2 admin dashboard |
 
 ---
 
@@ -70,8 +66,8 @@ pending → running → completed
 ### 1. Create Database Tables
 
 ```bash
-# Connect to MySQL
-mysql -h hope05 -P 53306 -u root -p'Tianfs@2020!!' hope_engine
+# Connect to MySQL (use your own credentials)
+mysql -h <HOST> -P <PORT> -u <USER> -p hope_engine
 
 # Execute SQL
 source sql/bot_tables_simple.sql
@@ -83,46 +79,54 @@ source sql/bot_tables_simple.sql
 pip install -r requirements.txt
 ```
 
-### 3. Run API Server
+### 3. Configure Environment
+
+Create `.env` file:
+
+```env
+DB_HOST=<your_db_host>
+DB_PORT=<your_db_port>
+DB_USER=<your_db_user>
+DB_PASSWORD=<your_db_password>
+DB_NAME=hope_engine
+API_KEY=<your_api_key>
+API_PREFIX=/api
+```
+
+### 4. Run Server
 
 ```bash
 uvicorn app.main:app --host 0.0.0.0 --port 8090
 ```
 
-### 4. Test API
+### 5. Test API
 
 ```bash
-# Get pending tasks for anna
-curl -H "X-Bot-Key: hope-bot-apikey-2026-0424" \
-  "http://hope05:8090/api/tasks/pending?assigned_to=anna"
+# Get pending tasks
+curl -H "X-Bot-Key: <your_api_key>" \
+  "http://localhost:8090/api/tasks/pending?assigned_to=anna"
 
 # Create a task
-curl -X POST -H "X-Bot-Key: hope-bot-apikey-2026-0424" \
-  "http://hope05:8090/api/tasks" \
-  -d '{"task_name":"给老板打招呼","assigned_to":"anna","priority":"P1"}'
+curl -X POST -H "X-Bot-Key: <your_api_key>" \
+  "http://localhost:8090/api/tasks" \
+  -d '{"task_name":"示例任务","assigned_to":"anna","priority":"P1"}'
 ```
 
 ---
 
 ## 🔧 Configuration
 
-### Database
+All configuration is read from `.env` file via pydantic-settings.
 
-| Config | Value |
-|--------|-------|
-| **Host** | hope05 |
-| **Port** | 53306 |
-| **Database** | hope_engine |
-| **User** | root |
-| **Password** | Tianfs@2020!! |
-
-### API
-
-| Config | Value |
-|--------|-------|
-| **API Key** | `hope-bot-apikey-2026-0424` |
-| **Header** | `X-Bot-Key` |
-| **Port** | 8090 |
+| Config | Description |
+|--------|-------------|
+| `DB_HOST` | MySQL host |
+| `DB_PORT` | MySQL port |
+| `DB_USER` | MySQL user |
+| `DB_PASSWORD` | MySQL password |
+| `DB_NAME` | Database name |
+| `API_KEY` | API authentication key |
+| `API_PREFIX` | API route prefix |
 
 ---
 
@@ -136,30 +140,23 @@ opentask/
 ├── docker-compose.yml           # Docker Compose
 ├── .env                         # Environment variables
 ├── sql/
-│   └── bot_tables_simple.sql    # Database schema (2 tables)
+│   └── bot_tables_simple.sql    # Database schema
+│   └── bot_config.sql           # Bot config table
 ├── docs/
-│   └ bot-service-design-simple.md # Design document
-│   └── HEARTBEAT-bot-api.md     # HEARTBEAT integration guide
+│   └── bot-service-design-simple.md
+│   └── HEARTBEAT-bot-api.md
 ├── app/
-│   ├── __init__.py
 │   ├── main.py                  # FastAPI entry point
 │   ├── config.py                # Configuration
-│   ├── models/
-│   │   ├── task.py              # Task model
-│   │   └── task_log.py          # TaskLog model
-│   ├── routers/
-│   │   └── task.py              # Task API routes
-│   ├── services/
-│   │   └── task_service.py      # Business logic
-│   ├── utils/
-│   │   ├── db.py                # Database connection
-│   │   └ auth.py                # API Key authentication
-│   └── schemas/
-│       ├── task.py              # Pydantic models
-│       └── response.py          # Response models
+│   ├── htmx/                    # HTMX Web UI routes
+│   ├── templates/               # Jinja2 templates
+│   ├── routers/                 # API routes
+│   ├── services/                # Business logic
+│   ├── utils/                   # Helpers
+│   └── schemas/                 # Pydantic models
 └── tests/
-    ├── test_task_api.py         # API tests
-    └── test_task_service.py     # Service tests
+    ├── test_task_api.py
+    └── ui/                      # Playwright UI tests
 ```
 
 ---
@@ -184,14 +181,17 @@ opentask/
 
 ---
 
-## 🤖 Bot Identity
+## 🌐 Web UI
 
-| Bot | assigned_to | Description |
-|-----|-------------|-------------|
-| **Hope (main)** | main | Central dispatcher |
-| **trump** | trump | Upload engine operator |
-| **cc** | cc | Claude Code container |
-| **anna** | anna | Testing/operations |
+Access at `http://localhost:8090/web/`
+
+| Page | Path | Description |
+|------|------|-------------|
+| Dashboard | `/web/` | Today stats, quick actions |
+| Tasks List | `/web/tasks` | Filterable task table |
+| Bot Management | `/web/bots` | Active bots overview |
+| Create Task | `/web/tasks/new` | Quick task form |
+| Task Detail | `/web/tasks/{id}` | Status operations, logs |
 
 ---
 
@@ -201,16 +201,16 @@ Each OpenClaw container checks for pending tasks during heartbeat:
 
 ```bash
 # Get pending tasks
-curl -H "X-Bot-Key: hope-bot-apikey-2026-0424" \
-  "http://hope05:8090/api/tasks/pending?assigned_to=anna"
+curl -H "X-Bot-Key: <your_api_key>" \
+  "http://<host>:8090/api/tasks/pending?assigned_to=<bot_name>"
 
 # Start execution
-curl -X PUT -H "X-Bot-Key: hope-bot-apikey-2026-0424" \
-  "http://hope05:8090/api/tasks/1/start"
+curl -X PUT -H "X-Bot-Key: <your_api_key>" \
+  "http://<host>:8090/api/tasks/{id}/start"
 
 # Complete task
-curl -X PUT -H "X-Bot-Key: hope-bot-apikey-2026-0424" \
-  "http://hope05:8090/api/tasks/1/complete" \
+curl -X PUT -H "X-Bot-Key: <your_api_key>" \
+  "http://<host>:8090/api/tasks/{id}/complete" \
   -d '{"result":"执行成功"}'
 ```
 
@@ -222,40 +222,20 @@ See `docs/HEARTBEAT-bot-api.md` for full integration guide.
 
 **Mission Control (OpenClaw skill) uses SQLite local database:**
 
-| Container | Database Path | Data |
-|-----------|---------------|------|
+| Container | Database | Shared? |
+|-----------|----------|---------|
 | main | ~/.openclaw/mission-control.db | ❌ Isolated |
 | trump | ~/.openclaw-trump/mission-control.db | ❌ Isolated |
 | cc | ~/.openclaw-cc/mission-control.db | ❌ Isolated |
 | anna | ~/.openclaw-anna/mission-control.db | ❌ Isolated |
 
-**Result**: Containers cannot share tasks - main cannot assign tasks to trump/cc/anna!
-
-**OpenTask Solution**: MySQL remote database (hope05:53306) - all containers share the same task queue!
-
----
-
-## 🛠️ Development Roadmap
-
-| Phase | Time | Tasks |
-|-------|------|-------|
-| **Phase 1** | 1 day | Create tables + Basic API |
-| **Phase 2** | 1 day | Business logic + Retry mechanism |
-| **Phase 3** | 1 day | HEARTBEAT integration + Testing |
-| **Phase 4** | 1 day | Deployment + Monitoring |
+**OpenTask Solution**: MySQL remote database - all containers share the same task queue!
 
 ---
 
 ## 📝 License
 
 MIT License - Open Source
-
----
-
-## 👤 Author
-
-- **Hope** - AI Assistant
-- **Andy** - Project Owner
 
 ---
 
@@ -267,5 +247,3 @@ MIT License - Open Source
 ---
 
 **Version**: v1.0
-**Created**: 2026-04-24
-**Status**: Design Complete, Development Pending
